@@ -9,6 +9,7 @@
 #define kCDEFileModificationDateKey @"modificationDate"
 #define kCDEStorePathKey @"storePath"
 #define kCDEModelPathKey @"modelPath"
+#define kCDETableNamesKey @"numTables"
 
 typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItems /* CDEProjectBrowserItem */);
 
@@ -47,14 +48,24 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
 #pragma mark - Actions
 - (IBAction)createProject:(id)sender {
     NSInteger row = [self.tableView rowForView:sender];
-    if(row == -1) {
+    [self createProjectByRow:row];
+}
+
+- (IBAction)onCellClick:(id)sender {
+    NSInteger row = [self.tableView selectedRow];
+    [self createProjectByRow:row];
+}
+
+- (void)createProjectByRow:(NSInteger)row {
+    if (row < 0 || row >= [self.items.arrangedObjects count]) {
+        NSLog(@"bad row: %d", (int)row);
         return;
     }
-    CDEProjectBrowserItem *item = [self.items.arrangedObjects objectAtIndex:row];
-    
+    CDEProjectBrowserItem *item = [self.items.arrangedObjects objectAtIndex:(NSUInteger)row];
     if(item == nil) {
         return;
     }
+    NSLog(@"opening project: %@", item.projectName);
     CDEDocument *document = [[NSDocumentController sharedDocumentController] openUntitledDocumentAndDisplay:NO error:NULL];
     CDEConfiguration *c = [document createConfiguration];
     NSError *error = nil;
@@ -104,8 +115,8 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
             // parse out last part (ie: com.apple.CoreSimulator.SimRuntime.iOS-8-1)
             NSArray *osArray = [osName componentsSeparatedByString: @"."];
             osName = osArray.lastObject;
-            //NSLog(@"device:%@, os:%@", deviceName, osName);
 
+            // deviceName = "iPhone 6 (iOS-8-3)"
             deviceName = [deviceName stringByAppendingFormat:@" (%@)", osName];
 
             // look for databases for this simulator
@@ -118,11 +129,13 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
             [allItems addObjectsFromArray:items];
         }
 
+        NSLog(@"found %d projects", (int)[allItems count]);
+
         // sort all projects by modified date (descending)
         NSSortDescriptor* sortByDate = [NSSortDescriptor sortDescriptorWithKey:@"fileModDate" ascending:NO];
         [allItems sortUsingDescriptors:@[sortByDate]];
 
-        double delayInSeconds = 1.0;
+        double delayInSeconds = 0;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             completionHandler(allItems);
@@ -139,6 +152,8 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
         [metadataByStorePath enumerateKeysAndObjectsUsingBlock:^(NSString *storePath, NSDictionary *metadata, BOOL *stop2) {
             BOOL isCompatible = [model isConfiguration:nil compatibleWithStoreMetadata:metadata];
             if(isCompatible) {
+                //NSLog(@"modelPath:%@, storePath:%@", modelPath, storePath);
+                //NSLog(@"metadata:%@", metadata);
                 NSDate *storeModDate;
                 NSURL *storeURL=[NSURL fileURLWithPath:storePath];
                 NSError *error;
@@ -160,10 +175,18 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
                 
                 //NSSortDescriptor doesn't do NSDate, so use a string. Both dates concatenated for nesting.
                 NSString *fileModDateString=[NSString stringWithFormat:@"%@ - %@",storeModDate,modelModDate];
+
+                // try to determine # of tables defined in store
+                NSString *tableNames = @"";
+                NSDictionary *tableVersionDict = metadata[@"NSStoreModelVersionHashes"];
+                if ([tableVersionDict count] > 0) {
+                    tableNames = [[tableVersionDict allKeys] componentsJoinedByString:@", "];
+                }
                 
                 NSDictionary *itemWithDate=@{kCDEFileModificationDateKey: fileModDateString,
-                                             kCDEStorePathKey: storePath,
-                                             kCDEModelPathKey: modelPath};
+                    kCDEStorePathKey: storePath,
+                    kCDEModelPathKey: modelPath,
+                    kCDETableNamesKey: tableNames};
                 
                 [itemsWithDates addObject:itemWithDate];
             }
@@ -176,7 +199,8 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
     for (NSDictionary *itemWithDate in itemsSorted) {
         NSString *storePath=itemWithDate[kCDEStorePathKey];
         NSString *modelPath=itemWithDate[kCDEModelPathKey];
-        CDEProjectBrowserItem *item = [[CDEProjectBrowserItem alloc] initWithStorePath:storePath modelPath:modelPath device:device];
+        NSString *tableNames=itemWithDate[kCDETableNamesKey];
+        CDEProjectBrowserItem *item = [[CDEProjectBrowserItem alloc] initWithStorePath:storePath modelPath:modelPath device:device tableNames:tableNames];
         [items addObject:item];
     }
 

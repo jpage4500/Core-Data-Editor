@@ -10,6 +10,7 @@
 @property (nonatomic, copy, readwrite) NSString *modelName;
 
 @property (nonatomic, copy, readwrite) NSString *device;
+@property (nonatomic, copy, readwrite) NSString *tableNames;
 @property (nonatomic, copy, readwrite) NSDate *fileModDate;
 
 @property (nonatomic, copy, readwrite) NSString *projectName;
@@ -21,23 +22,24 @@
 @implementation CDEProjectBrowserItem : NSObject
 
 #pragma mark - Creating
-- (instancetype)initWithStorePath:(NSString *)storePath modelPath:(NSString *)modelPath device:(NSString *)device {
+- (instancetype)initWithStorePath:(NSString *)storePath modelPath:(NSString *)modelPath device:(NSString *)device tableNames:(NSString *)tableNames {
     self = [super init];
     if(self) {
         self.storePath = storePath;
         self.modelPath = modelPath;
         self.device = device;
+        self.tableNames = tableNames;
         [self createNamesAndIcon];
     }
     return self;
 }
 
 - (instancetype)init {
-    return [self initWithStorePath:@"" modelPath:@"" device:@""];
+    return [self initWithStorePath:@"" modelPath:@"" device:@"" tableNames:@""];
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@: store path = %@, model path = %@, device = %@", [super description], self.storePath, self.modelPath, self.device];
+    return [NSString stringWithFormat:@"store:%@, model:%@, device:%@, tables:%@", self.storePath, self.modelPath, self.device, self.tableNames];
 }
 
 - (void)createNamesAndIcon {
