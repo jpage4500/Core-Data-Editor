@@ -24,7 +24,7 @@
 - (void)windowDidLoad
 {
     [super windowDidLoad];
-    
+
     self.simulatorPathPopupButton.otherItemSelectedHandler = ^(CDEPathPickerPopUpButton *sender) {
         [self showSimulatorDirectoryPicker:sender];
     };
@@ -32,7 +32,6 @@
         [self showDerivdedDataPicker:sender];
     };
 }
-
 
 - (IBAction)showSimulatorDirectoryPicker:(id)sender {
     NSOpenPanel *panel = [NSOpenPanel openPanel];

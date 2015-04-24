@@ -2,13 +2,13 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">101000</int>
-		<string key="IBDocument.SystemVersion">14A379a</string>
-		<string key="IBDocument.InterfaceBuilderVersion">6249</string>
-		<string key="IBDocument.AppKitVersion">1343.13</string>
-		<string key="IBDocument.HIToolboxVersion">755.00</string>
+		<string key="IBDocument.SystemVersion">14D131</string>
+		<string key="IBDocument.InterfaceBuilderVersion">7531</string>
+		<string key="IBDocument.AppKitVersion">1347.57</string>
+		<string key="IBDocument.HIToolboxVersion">758.70</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin</string>
-			<string key="NS.object.0">6249</string>
+			<string key="NS.object.0">7531</string>
 		</object>
 		<array key="IBDocument.IntegratedClassDependencies">
 			<string>NSBox</string>
@@ -351,7 +351,7 @@
 											<object class="NSTextField" id="474832938">
 												<reference key="NSNextResponder" ref="555629799"/>
 												<int key="NSvFlags">268</int>
-												<string key="NSFrame">{{248, 85}, {357, 112}}</string>
+												<string key="NSFrame">{{248, 78}, {357, 119}}</string>
 												<reference key="NSSuperview" ref="555629799"/>
 												<reference key="NSWindow"/>
 												<reference key="NSNextKeyView" ref="790811147"/>
@@ -361,7 +361,14 @@
 												<object class="NSTextFieldCell" key="NSCell" id="540273064">
 													<int key="NSCellFlags">69206017</int>
 													<int key="NSCellFlags2">272760832</int>
-													<string key="NSContents">Please specify your iPhone Simulator directory. This directory is usually located in ~/Library/Application Support/iPhone Simulator/. Specifying your iPhone Simulator directory enables the project browser feature. The project browser automatically finds compatible SQLite stores and managed object models and let's you quickly create a Core Data Editor projects. You access the project browser from the "Window | Project Browser" menu item.</string>
+													<string type="base64-UTF8" key="NSContents">UGxlYXNlIHNwZWNpZnkgeW91ciBpUGhvbmUgU2ltdWxhdG9yIGRpcmVjdG9yeS4gVGhpcyBkaXJlY3Rv
+cnkgaXMgdXN1YWxseSBsb2NhdGVkIGluIH4vTGlicmFyeS9EZXZlbG9wZXIvQ29yZVNpbXVsYXRvci4K
+ClNwZWNpZnlpbmcgeW91ciBpUGhvbmUgU2ltdWxhdG9yIGRpcmVjdG9yeSBlbmFibGVzIHRoZSBwcm9q
+ZWN0IGJyb3dzZXIgZmVhdHVyZS4gVGhlIHByb2plY3QgYnJvd3NlciBhdXRvbWF0aWNhbGx5IGZpbmRz
+IGNvbXBhdGlibGUgU1FMaXRlIHN0b3JlcyBhbmQgbWFuYWdlZCBvYmplY3QgbW9kZWxzIGFuZCBsZXQn
+cyB5b3UgcXVpY2tseSBjcmVhdGUgYSBDb3JlIERhdGEgRWRpdG9yIHByb2plY3RzLiBZb3UgYWNjZXNz
+IHRoZSBwcm9qZWN0IGJyb3dzZXIgZnJvbSB0aGUgIldpbmRvdyB8IFByb2plY3QgQnJvd3NlciIgbWVu
+dSBpdGVtLg</string>
 													<object class="NSFont" key="NSSupport" id="26">
 														<bool key="IBIsSystemFont">YES</bool>
 														<double key="NSSize">11</double>
@@ -388,7 +395,6 @@
 												<string key="NSFrame">{{558, 9}, {44, 25}}</string>
 												<reference key="NSSuperview" ref="555629799"/>
 												<reference key="NSWindow"/>
-												<reference key="NSNextKeyView" ref="964859605"/>
 												<string key="NSReuseIdentifierKey">_NS:22</string>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSButtonCell" key="NSCell" id="596263452">
@@ -864,7 +870,6 @@
 							<int key="NSTvFlags">4</int>
 							<bool key="NSAllowTruncatedLabels">YES</bool>
 							<bool key="NSDrawsBackground">YES</bool>
-							<reference key="NSDelegate"/>
 							<array class="NSMutableArray" key="NSSubviews">
 								<reference ref="555629799"/>
 							</array>
@@ -875,7 +880,7 @@
 					<reference key="NSWindow"/>
 					<reference key="NSNextKeyView" ref="964859605"/>
 				</object>
-				<string key="NSScreenRect">{{0, 0}, {1920, 1058}}</string>
+				<string key="NSScreenRect">{{0, 0}, {2560, 1417}}</string>
 				<string key="NSMaxSize">{10000000000000, 10000000000000}</string>
 				<bool key="NSWindowIsRestorable">YES</bool>
 			</object>

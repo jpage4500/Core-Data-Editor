@@ -85,30 +85,54 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
     NSAssert(self.projectDirectoryURL != nil, @"");
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSDirectoryEnumerator *enumerator = [self newSimulatorDirectoryEnumerator];
-        
-        NSDictionary *metadataByStorePath;
-        NSDictionary *modelByModelPath;
-        
-        [enumerator getMetadataByStorePath:&metadataByStorePath modelByModelPath:&modelByModelPath];
-        
-        NSArray *items = [self compatibleProjectBrowserItemsWithMetadataByStorePath:metadataByStorePath modelByModelPath:modelByModelPath];
-        
+        NSMutableArray *allItems = [NSMutableArray new];
+        // iterate over all simulator directories
+        NSURL *devicesUrl = [self.projectDirectoryURL URLByAppendingPathComponent:@"Devices" isDirectory:YES];
+        NSDirectoryEnumerator *devicesEnumerator = [self newDirectoryEnumerator:devicesUrl includeSubdirs:NO];
+        for (NSURL *deviceUrl in devicesEnumerator) {
+            // look for device.plist in this directory to get the simulator device and OS version
+            NSURL *infoUrl = [deviceUrl URLByAppendingPathComponent:@"device.plist" isDirectory:NO];
+            NSDictionary *infoDict = [NSDictionary dictionaryWithContentsOfFile:infoUrl.path];
+            if (infoDict == nil) {
+                continue;
+            }
+            NSString *deviceName = infoDict[@"name"];
+            NSString *osName = infoDict[@"runtime"];
+            if ([deviceName length] == 0 || [osName length] == 0) {
+                continue;
+            }
+            // parse out last part (ie: com.apple.CoreSimulator.SimRuntime.iOS-8-1)
+            NSArray *osArray = [osName componentsSeparatedByString: @"."];
+            osName = osArray.lastObject;
+            //NSLog(@"device:%@, os:%@", deviceName, osName);
+
+            deviceName = [deviceName stringByAppendingFormat:@" (%@)", osName];
+
+            // look for databases for this simulator
+            NSDirectoryEnumerator *enumerator = [self newDirectoryEnumerator:deviceUrl includeSubdirs:YES];
+            NSDictionary *metadataByStorePath;
+            NSDictionary *modelByModelPath;
+            [enumerator getMetadataByStorePath:&metadataByStorePath modelByModelPath:&modelByModelPath];
+            NSArray *items = [self compatibleProjectBrowserItemsWithMetadataByStorePath:metadataByStorePath modelByModelPath:modelByModelPath device:deviceName];
+
+            [allItems addObjectsFromArray:items];
+        }
+
         double delayInSeconds = 1.0;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-            completionHandler(items);
+            completionHandler(allItems);
         });
     });
 }
 
-- (NSArray *)compatibleProjectBrowserItemsWithMetadataByStorePath:(NSDictionary *)metadataByStorePath modelByModelPath:(NSDictionary*)modelByModelPath {
+- (NSArray *)compatibleProjectBrowserItemsWithMetadataByStorePath:(NSDictionary *)metadataByStorePath modelByModelPath:(NSDictionary*)modelByModelPath device:(NSString *)device {
     NSMutableArray *items = [NSMutableArray new];
     NSMutableArray *itemsWithDates= [NSMutableArray new]; // Each element is dictionary with {modificationDate:, storePath:, modelPath}
     
     // Find compatible combinations
     [modelByModelPath enumerateKeysAndObjectsUsingBlock:^(NSString *modelPath, NSManagedObjectModel *model, BOOL *stop) {
-        [metadataByStorePath enumerateKeysAndObjectsUsingBlock:^(NSString *storePath, NSDictionary *metadata, BOOL *stop) {
+        [metadataByStorePath enumerateKeysAndObjectsUsingBlock:^(NSString *storePath, NSDictionary *metadata, BOOL *stop2) {
             BOOL isCompatible = [model isConfiguration:nil compatibleWithStoreMetadata:metadata];
             if(isCompatible) {
                 NSDate *storeModDate;
@@ -143,21 +167,22 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
     }];
     //Now sort and display
     NSSortDescriptor *descriptor = [[NSSortDescriptor alloc] initWithKey:kCDEFileModificationDateKey ascending:NO];
-    NSArray *itemsSorted=[itemsWithDates sortedArrayUsingDescriptors:[NSArray arrayWithObjects:descriptor,nil]];
+    NSArray *itemsSorted= [itemsWithDates sortedArrayUsingDescriptors:@[descriptor]];
     
     for (NSDictionary *itemWithDate in itemsSorted) {
         NSString *storePath=itemWithDate[kCDEStorePathKey];
         NSString *modelPath=itemWithDate[kCDEModelPathKey];
-        CDEProjectBrowserItem *item = [[CDEProjectBrowserItem alloc] initWithStorePath:storePath modelPath:modelPath];
+        CDEProjectBrowserItem *item = [[CDEProjectBrowserItem alloc] initWithStorePath:storePath modelPath:modelPath device:device];
         [items addObject:item];
     }
 
     return items;
 }
 
-- (NSDirectoryEnumerator *)newSimulatorDirectoryEnumerator {
+- (NSDirectoryEnumerator *)newDirectoryEnumerator:(NSURL *)URL includeSubdirs:(BOOL)includeSubdirs {
     NSFileManager *fileManager = [NSFileManager defaultManager]; // there is no reason not to use the defaultManager
-    NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtURL:self.projectDirectoryURL includingPropertiesForKeys:nil options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:^BOOL(NSURL *url, NSError *error) {
+    NSDirectoryEnumerationOptions options = includeSubdirs ? NSDirectoryEnumerationSkipsHiddenFiles : NSDirectoryEnumerationSkipsHiddenFiles | NSDirectoryEnumerationSkipsSubdirectoryDescendants;
+    NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtURL:URL includingPropertiesForKeys:nil options:options errorHandler:^BOOL(NSURL *url, NSError *error) {
         NSLog(@"error while enumerating contents of simulator directory: %@", error);
         return YES;
     }];

@@ -74,6 +74,7 @@
         // Is URL a managed object model file?
         NSManagedObjectModel *model = [URL transformedManagedObjectModel];
         if(model != nil) { // YES
+            //NSLog(@"getMetadataByStorePath: got MODEL:%@", URL.absoluteString);
             modelByModelPath[URL.path] = model;
             continue;
         }
@@ -91,6 +92,7 @@
         if(metadata == nil) {
             continue;
         }
+        //NSLog(@"getMetadataByStorePath: got STORE:%@", URL.absoluteString);
         metadataByStorePath[URL.path] = metadata;
     }
     

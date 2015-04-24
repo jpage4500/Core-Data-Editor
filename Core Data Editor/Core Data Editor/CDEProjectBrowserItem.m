@@ -9,6 +9,8 @@
 @property (nonatomic, copy, readwrite) NSString *modelPath;
 @property (nonatomic, copy, readwrite) NSString *modelName;
 
+@property (nonatomic, copy, readwrite) NSString *device;
+
 @property (nonatomic, copy, readwrite) NSString *projectName;
 
 @property (nonatomic, strong, readwrite) NSImage *icon;
@@ -18,22 +20,23 @@
 @implementation CDEProjectBrowserItem : NSObject
 
 #pragma mark - Creating
-- (instancetype)initWithStorePath:(NSString *)storePath modelPath:(NSString *)modelPath {
+- (instancetype)initWithStorePath:(NSString *)storePath modelPath:(NSString *)modelPath device:(NSString *)device {
     self = [super init];
     if(self) {
         self.storePath = storePath;
         self.modelPath = modelPath;
+        self.device = device;
         [self createNamesAndIcon];
     }
     return self;
 }
 
 - (instancetype)init {
-    return [self initWithStorePath:@"" modelPath:@""];
+    return [self initWithStorePath:@"" modelPath:@"" device:@""];
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@: store path = %@, model path = %@", [super description], self.storePath, self.modelPath];
+    return [NSString stringWithFormat:@"%@: store path = %@, model path = %@, device = %@", [super description], self.storePath, self.modelPath, self.device];
 }
 
 - (void)createNamesAndIcon {
@@ -60,6 +63,7 @@
     self.modelName=[NSString stringWithFormat:@"%@  (%@)",[self.modelPath lastPathComponent], [self relativeDateStringForDate:modelModDate]];
     
     self.projectName = [self.modelName stringByDeletingPathExtension];
+
     NSArray *components = [self.modelPath pathComponents];
     [components enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(NSString *component, NSUInteger idx, BOOL *stop) {
         if([[component pathExtension] isEqualToString:@"app"]) {
@@ -70,6 +74,10 @@
             *stop = YES;
         }
     }];
+
+    if ([self.device length] > 0) {
+        self.projectName = [self.projectName stringByAppendingFormat:@" %@", self.device];
+    }
 }
 
 - (NSImage *)iconFromBundleAtURL:(NSURL *)bundleURL {

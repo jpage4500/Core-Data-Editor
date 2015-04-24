@@ -62,31 +62,44 @@
 
     BOOL iPhoneSimulatorSuccess = YES;
 
+    // try to locate simulator directory in default location
+    if (defaults.simulatorDirectory_cde == nil) {
+        NSString *simDir = [NSHomeDirectory() stringByAppendingPathComponent:@"/Library/Developer/CoreSimulator/"];
+        BOOL isDirectory = NO;
+        if ([[NSFileManager defaultManager] fileExistsAtPath:simDir isDirectory:&isDirectory]) {
+            NSLog(@"startAccessingCoreDataEditorSecurityScopedResources: sim folder exists: %@", simDir);
+            defaults.simulatorDirectory_cde = [NSURL fileURLWithPath:simDir isDirectory:YES];
+            defaults.applicationNeedsSetup_cde = NO;
+        }
+    }
+
     if(defaults.simulatorDirectory_cde != nil) {
         self.iPhoneSimulatorDirectory = defaults.simulatorDirectory_cde;
         iPhoneSimulatorSuccess = [self.iPhoneSimulatorDirectory startAccessingSecurityScopedResource];
     }
 
-    BOOL buildProductsDirectorySuccess = YES;
+    return iPhoneSimulatorSuccess;
 
-    if(defaults.buildProductsDirectory_cde != nil) {
-        self.derivedDataDirectory = defaults.buildProductsDirectory_cde;
-        buildProductsDirectorySuccess = [self.derivedDataDirectory startAccessingSecurityScopedResource];
-        if(buildProductsDirectorySuccess == NO) {
-            // we have bookmark data but we cannot start accessing it!
-          NSAlert *alert = [NSAlert new];
-          alert.messageText = @"Failed to access Derived Data Directory";
-          [alert addButtonWithTitle:@"Set Directory…"];
-          [alert addButtonWithTitle:@"Cancel"];
-          alert.informativeText = @"You have set a Xcode derived data directory in the preferences but Core Data Editor failed to access the contents of the directory. If you want to continue to use this feature you should set a new directory now.";
-            NSUInteger returnCode = [alert runModal];
-            if(returnCode == NSAlertFirstButtonReturn) {
-                [self.preferencesWindowController showAutomaticProjectCreationPreferencesWithCompletionHandler:nil];
-            }
-        }
-    }
-
-    return (iPhoneSimulatorSuccess && buildProductsDirectorySuccess);
+//    BOOL buildProductsDirectorySuccess = YES;
+//
+//    if(defaults.buildProductsDirectory_cde != nil) {
+//        self.derivedDataDirectory = defaults.buildProductsDirectory_cde;
+//        buildProductsDirectorySuccess = [self.derivedDataDirectory startAccessingSecurityScopedResource];
+//        if(buildProductsDirectorySuccess == NO) {
+//            // we have bookmark data but we cannot start accessing it!
+//          NSAlert *alert = [NSAlert new];
+//          alert.messageText = @"Failed to access Derived Data Directory";
+//          [alert addButtonWithTitle:@"Set Directory…"];
+//          [alert addButtonWithTitle:@"Cancel"];
+//          alert.informativeText = @"You have set a Xcode derived data directory in the preferences but Core Data Editor failed to access the contents of the directory. If you want to continue to use this feature you should set a new directory now.";
+//            NSUInteger returnCode = [alert runModal];
+//            if(returnCode == NSAlertFirstButtonReturn) {
+//                [self.preferencesWindowController showAutomaticProjectCreationPreferencesWithCompletionHandler:nil];
+//            }
+//        }
+//    }
+//
+//    return (iPhoneSimulatorSuccess && buildProductsDirectorySuccess);
 }
 
 #pragma mark NSApplicationDelegate
