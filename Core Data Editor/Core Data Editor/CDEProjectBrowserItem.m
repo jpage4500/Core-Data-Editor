@@ -10,6 +10,7 @@
 @property (nonatomic, copy, readwrite) NSString *modelName;
 
 @property (nonatomic, copy, readwrite) NSString *device;
+@property (nonatomic, copy, readwrite) NSDate *fileModDate;
 
 @property (nonatomic, copy, readwrite) NSString *projectName;
 
@@ -53,6 +54,8 @@
     if ([fileModDate compare:walDate]==NSOrderedAscending) {
         fileModDate=walDate;
     }
+    // use store modified date for sorting in project browser
+    self.fileModDate = fileModDate;
     
     self.storeName=[NSString stringWithFormat:@"%@  (%@)",[self.storePath lastPathComponent], [self relativeDateStringForDate:fileModDate]];
     
@@ -96,7 +99,7 @@
     
     NSFileManager *fileManager = [NSFileManager new];
     
-    if([fileManager fileExistsAtPath:iconURL.path] == NO) {
+    if(![fileManager fileExistsAtPath:iconURL.path]) {
         return [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericApplicationIcon)];
     }
     
@@ -104,55 +107,64 @@
     return image;
 }
 
+typedef NS_ENUM(NSInteger, EDateType) {
+    DateTypeToday = 0,
+    DateTypeYesterday,
+    DateTypeLastWeek,
+    DateTypeThisMonth,
+};
+
+// get relative date
+// - today: "3:45 PM"
+// - this week: "Tues, 04/01 3:45 PM"
+// - older: "04/01/15 3:45 PM"
 - (NSString *)relativeDateStringForDate:(NSDate *)date {
-    const int SECOND = 1;
-    const int MINUTE = 60 * SECOND;
-    const int HOUR = 60 * MINUTE;
-    const int DAY = 24 * HOUR;
-    const int MONTH = 30 * DAY;
-    
-    NSDate *now = [NSDate date];
-    NSTimeInterval delta = [date timeIntervalSinceDate:now] * -1.0;
-    
-    NSCalendar *calendar = [NSCalendar currentCalendar];
-    NSUInteger units = (NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay | NSCalendarUnitHour | NSCalendarUnitMinute | NSCalendarUnitSecond);
-    NSDateComponents *components = [calendar components:units fromDate:date toDate:now options:0];
-    
-    NSString *relativeString;
-    
-    if (delta < 0) {
-        relativeString = @"In the future!";
-        
-    } else if (delta < 1 * MINUTE) {
-        relativeString = (components.second == 1) ? @"One second ago" : [NSString stringWithFormat:@"%ld seconds ago",(long)components.second];
-        
-    } else if (delta < 2 * MINUTE) {
-        relativeString =  @"a minute ago";
-        
-    } else if (delta < 45 * MINUTE) {
-        relativeString = [NSString stringWithFormat:@"%ld minutes ago",(long)components.minute];
-        
-    } else if (delta < 90 * MINUTE) {
-        relativeString = @"an hour ago";
-        
-    } else if (delta < 24 * HOUR) {
-        relativeString = [NSString stringWithFormat:@"%ld hours ago",(long)components.hour];
-        
-    } else if (delta < 48 * HOUR) {
-        relativeString = @"yesterday";
-        
-    } else if (delta < 30 * DAY) {
-        relativeString = [NSString stringWithFormat:@"%ld days ago",(long)components.day];
-        
-    } else if (delta < 12 * MONTH) {
-        relativeString = (components.month <= 1) ? @"One month ago" : [NSString stringWithFormat:@"%ld months ago",(long)components.month];
-        
-    } else {
-        relativeString = (components.year <= 1) ? @"One year ago" : [NSString stringWithFormat:@"%ld years ago",(long)components.year];
-        
+    NSDateFormatter *dateFormatter = [NSDateFormatter new];
+
+    NSDate *midnight = [self dateByType:DateTypeToday];
+    if ([date compare:midnight] == NSOrderedDescending) {
+        [dateFormatter setDateFormat:@"h:mm a"];
     }
-    
-    return relativeString;
+    else {
+        NSDate *lastWeek = [self dateByType:DateTypeLastWeek];
+        if ([date compare:lastWeek] == NSOrderedDescending) {
+            [dateFormatter setDateFormat:@"EEE, MM/dd h:mm a"];
+        }
+        else {
+            // older than last week
+            [dateFormatter setDateFormat:@"MM/dd/YY h:mm a"];
+        }
+    }
+
+    return [dateFormatter stringFromDate:date];
+}
+
+// get a date object set to midnight for use in displaying conversations in sections (or other date groupings)
+// DateTypeToday: today's date at midnight
+// DateTypeYesterday: get yesterday's date at midnight
+- (NSDate *)dateByType:(EDateType)dateType {
+    NSCalendar *cal = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+    [cal setTimeZone:[NSTimeZone systemTimeZone]];
+    NSDateComponents *comp = [cal components:( NSYearCalendarUnit| NSMonthCalendarUnit | NSDayCalendarUnit) fromDate:[NSDate date]];
+
+    // set values to '0' (midnight today)
+    [comp setSecond:0];
+    [comp setMinute:0];
+    [comp setHour:0];
+
+    if (dateType == DateTypeYesterday) {
+        [comp setHour:comp.hour - 24];
+    }
+    else if (dateType == DateTypeLastWeek) {
+        // using -6 so we don't show the same day of the week as today
+        [comp setDay:comp.day - 6];
+    }
+    else if (dateType == DateTypeThisMonth) {
+        // set day to first of the month
+        [comp setDay:1];
+    }
+
+    return [cal dateFromComponents:comp];
 }
 
 @end

@@ -118,6 +118,10 @@ typedef void(^ProjectBrowserReloadCompletionHandler)(NSArray *projectBrowserItem
             [allItems addObjectsFromArray:items];
         }
 
+        // sort all projects by modified date (descending)
+        NSSortDescriptor* sortByDate = [NSSortDescriptor sortDescriptorWithKey:@"fileModDate" ascending:NO];
+        [allItems sortUsingDescriptors:@[sortByDate]];
+
         double delayInSeconds = 1.0;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
