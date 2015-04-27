@@ -23,6 +23,16 @@
 #import "CDETextEditorController.h"
 #import "CDEManagedObjectsTableViewAttributeHelper.h"
 
+static const double MIN_WIDTH_COLUMN = 25.0;
+
+static const int MAX_WIDTH_NUMBER = 50;
+
+static const int MAX_WIDTH_BOOLEAN = 50;
+
+static const int MAX_WIDTH_DATE = 50;
+
+static const int MAX_WIDTH_OBJECTID = 100;
+
 @interface CDERequestDataCoordinator () <NSTextFieldDelegate, CDEDatePickerWindowDelegate>
 
 #pragma mark - Properties
@@ -61,6 +71,8 @@
         self.searchField = searchField;
         self.managedObjectsViewController = managedObjectsViewController;
 
+        //NSLog(@"CDERequestDataCoordinator: initWithManagedObjectsRequest: %@", self.request.entityDescription.name);
+
         // Add Columns
         // Add objectID Column
         NSMutableArray *columns = [NSMutableArray new];
@@ -68,7 +80,8 @@
         NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:@"objectID"];
         [[column headerCell] setTitle:[@"objectID" humanReadableStringAccordingToUserDefaults_cde]];
         [column sizeToFit];
-        [column setMinWidth:100.0];
+        [column setMinWidth:MIN_WIDTH_COLUMN];
+        [column setMaxWidth:MAX_WIDTH_OBJECTID];
         [column setSortDescriptorPrototype:[NSSortDescriptor newSortDescriptorForObjectIDColumn_cde]];
 
         [columns addObject:column];
@@ -79,7 +92,7 @@
             NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:relationshipDescription.name];
             [[column headerCell] setTitle:relationshipDescription.nameForDisplay_cde];
             [column sizeToFit];
-            [column setMinWidth:100.0];
+            [column setMinWidth:MIN_WIDTH_COLUMN];
             [columns addObject:column];
         }
             // Add Relationship Columns
@@ -90,7 +103,7 @@
                 NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:relationshipDescription.name];
                 [[column headerCell] setTitle:relationshipDescription.nameForDisplay_cde];
                 [column sizeToFit];
-                [column setMinWidth:100.0];
+                [column setMinWidth:MIN_WIDTH_COLUMN];
                 [columns addObject:column];
             }
         }
@@ -100,7 +113,32 @@
             NSTableColumn *column = [[NSTableColumn alloc] initWithIdentifier:attributeDescription.name];
             [[column headerCell] setTitle:attributeDescription.nameForDisplay_cde];
             [column sizeToFit];
-            [column setMinWidth:100.0];
+            [column setMinWidth:MIN_WIDTH_COLUMN];
+            CGFloat maxWidth = 0;
+            switch (attributeDescription.attributeType) {
+                case NSInteger16AttributeType:
+                case NSInteger32AttributeType:
+                case NSInteger64AttributeType:
+                    maxWidth = MAX_WIDTH_NUMBER;
+                    break;
+                case NSDecimalAttributeType:
+                case NSDoubleAttributeType:
+                case NSFloatAttributeType:
+                    maxWidth = MAX_WIDTH_NUMBER;
+                    break;
+                case NSBooleanAttributeType:
+                case NSBinaryDataAttributeType:
+                    maxWidth = MAX_WIDTH_BOOLEAN;
+                    break;
+                case NSDateAttributeType:
+                    maxWidth = MAX_WIDTH_DATE;
+                    break;
+                default:
+                    break;
+            }
+            if (maxWidth > 0) {
+                [column setMaxWidth:maxWidth];
+            }
             [column setSortDescriptorPrototype:attributeDescription.sortDescriptorPrototype_cde];
             [columns addObject:column];
         }

@@ -34,6 +34,8 @@
 #import "CDEMenuWindowController.h"
 #import "BFViewController.h"
 
+static const int MAX_COLUMN_WIDTH = 100;
+
 @interface CDEManagedObjectsViewController () <NSTableViewDelegate, NSTableViewDataSource, CDEBinaryValueTableCellViewDelegate, BFViewController>
 
 #pragma mark - Properties
@@ -278,6 +280,9 @@
   [self.tableView reloadData];
   [self.tableView endUpdates];
   [self updateAddAndRemoveButtons];
+
+    [self resizeColumnsToFitWidth];
+    //[self resizeToFitContents];
 }
 
 - (CDERequestDataCoordinator *)newRequestDataCoordinatorWithRequest:(CDEManagedObjectsRequest *)request {
@@ -302,7 +307,7 @@
   }
   
   NSAssert(class != Nil, @"Nil class not valid.");
-  
+
   return [[class alloc] initWithManagedObjectsRequest:request
                                             tableView:self.tableView
                                           searchField:self.searchField
@@ -485,5 +490,58 @@
 {
 }
 
+- (void)resizeColumnsToFitWidth {
+    // adjust columns widths to fit view
+    CGFloat viewWidth = self.view.frame.size.width;
+    //NSLog(@"resizeColumnsToFitWidth: %@, viewW:%d", self.request.entityDescription.name, (int)viewWidth);
+    __block CGFloat tableWidth = 0;
+    [self.tableView.tableColumns enumerateObjectsUsingBlock:^(NSTableColumn *column, NSUInteger idx, BOOL *stop) {
+        tableWidth += [column width];
+    }];
+   // NSLog(@"resizeColumnsToFitWidth: %@, w:%d, tableW:%d", self.request.entityDescription.name, (int)viewWidth, (int)tableWidth);
 
+    if (tableWidth > 0 && tableWidth < viewWidth) {
+        // add to each column to fill view width
+        __block CGFloat availableWidth = viewWidth - tableWidth;
+        __block CGFloat columnGrowWidth = availableWidth / [self.tableView.tableColumns count];
+        __block CGFloat extraGrowWidth = 0;
+        [self.tableView.tableColumns enumerateObjectsUsingBlock:^(NSTableColumn *column, NSUInteger idx, BOOL *stop) {
+            CGFloat columnGrow = column.maxWidth - column.width;
+            if (columnGrow > 0) {
+                columnGrow = MIN(columnGrow, columnGrowWidth + extraGrowWidth);
+                if (columnGrow < columnGrowWidth) {
+                    extraGrowWidth = columnGrowWidth - columnGrow;
+                }
+                column.width += columnGrow;
+                //NSLog(@"resizeColumnsToFitWidth: col:%@, old:%d, new:%d, extra:%d", column.title, (int)column.width, (int)columnGrow, (int)extraGrowWidth);
+            }
+        }];
+    }
+}
+
+- (void) resizeToFitContents {
+    NSLog(@"resizeToFit: %d", (int)[self.tableView.tableColumns count]);
+    [self.tableView.tableColumns enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        NSTableColumn *column = (NSTableColumn *) obj;
+        CGFloat width = 0;
+        for (int row = 0; row < self.tableView.numberOfRows; row++) {
+            NSView *view = [self.tableView viewAtColumn:idx row:row makeIfNecessary:YES];
+            if ([view isKindOfClass:NSTableCellView.class]) {
+                NSTableCellView *cell = (NSTableCellView *)view;
+                CGFloat contentW = [cell.textField.cell cellSize].width;
+                if (contentW > MAX_COLUMN_WIDTH) {
+                    // stop & use max width
+                    width = MAX_COLUMN_WIDTH;
+                    break;
+                }
+                width = MAX(width, MIN(column.maxWidth, contentW));
+                //NSLog(@"resizeToFit: col:%@, row:%d, contentW:%d", column.title, (int)row, (int)contentW);
+            }
+        }
+        if (width > 0) {
+            NSLog(@"resizeToFit: col:%@, width:%d", column.title, (int)width);
+            column.width = width;
+        }
+    }];
+}
 @end
