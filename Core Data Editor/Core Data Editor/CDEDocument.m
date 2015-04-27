@@ -237,7 +237,7 @@
   [self _documentWindow].titleVisibility = NSWindowTitleHidden;
     self.editorViewController.view.frame = self.containerView.bounds;
     [self.containerView addSubview:self.editorViewController.view];
-    
+
     self.configuration = [CDEConfiguration fetchedConfigurationInManagedObjectContext:self.managedObjectContext error:NULL];
     
     if(self.configuration == nil) {
@@ -342,11 +342,19 @@
 
           }];
         }
+        else {
+            [self.editorViewController restoreView:self.containerView];
+        }
     }
 }
 
+-(BOOL)isDocumentEdited {
+    // for now, don't annoy users with 'save document as..' dialogs
+    return NO;
+}
+
 - (void)close {
-    [self.editorViewController cleanup];
+    [self.editorViewController cleanup:self.containerView];
     [super close];
 }
 

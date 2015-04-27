@@ -21,6 +21,7 @@
 
 #import "NSTableColumn+CDERequestDataCoordinator.h"
 #import "CDETextEditorController.h"
+#import "CDEManagedObjectsTableViewAttributeHelper.h"
 
 @interface CDERequestDataCoordinator () <NSTextFieldDelegate, CDEDatePickerWindowDelegate>
 
@@ -111,9 +112,18 @@
         NSMenu *cellMenu = [[NSMenu alloc] initWithTitle:@"Search Menu"];
         NSArray *attributes = [[request.entityDescription attributesByName] allValues];
         NSUInteger attributeIndex = 1;
+
+        // 'all' search option
+        NSMenuItem *newItem = [[NSMenuItem alloc] initWithTitle:@"All" action:@selector(setSearchCategoryFrom:) keyEquivalent:@""];
+        [newItem setTarget:self];
+        [newItem setTag:attributeIndex];
+        [newItem setRepresentedObject:nil];
+        [cellMenu insertItem:newItem atIndex:attributeIndex - 1];
+        attributeIndex++;
+
         for(NSAttributeDescription *attribute in attributes) {
             if([attribute attributeType] == NSStringAttributeType || attribute.isAttributeWithIntegerCharacteristics_cde) {
-                NSMenuItem *newItem = [[NSMenuItem alloc] initWithTitle:[attribute nameForDisplay_cde] action:@selector(setSearchCategoryFrom:) keyEquivalent:@""];
+                newItem = [[NSMenuItem alloc] initWithTitle:[attribute nameForDisplay_cde] action:@selector(setSearchCategoryFrom:) keyEquivalent:@""];
                 [newItem setTarget:self];
                 [newItem setTag:attributeIndex];
                 [newItem setRepresentedObject:attribute];
@@ -125,7 +135,7 @@
         if([cellMenu numberOfItems] > 0) {
             [self setSearchCategoryFrom:[cellMenu itemAtIndex:0]];
         }
-        [[self searchField] setEnabled:([cellMenu numberOfItems] > 0) ? YES : NO];
+        [[self searchField] setEnabled:[cellMenu numberOfItems] > 0];
         self.searchField.delegate = self;
         [[self.searchField cell] setPlaceholderString:@""];
     }
@@ -521,30 +531,58 @@
 
 - (IBAction)setSearchCategoryFrom:(NSMenuItem *)menuItem {
     NSAttributeDescription *attributeDescription = menuItem.representedObject;
-    [self setFilterByKeyPath:attributeDescription.name];
-    [self setFilterByAttributeDescription:attributeDescription];
-    [[self.searchField cell] setPlaceholderString:attributeDescription.nameForDisplay_cde];
+    if (attributeDescription == nil) {
+        self.filterByKeyPath = nil;
+        self.filterByAttributeDescription = nil;
+        [self.searchField.cell setPlaceholderString:@"All"];
+    }
+    else {
+        [self setFilterByKeyPath:attributeDescription.name];
+        [self setFilterByAttributeDescription:attributeDescription];
+        [[self.searchField cell] setPlaceholderString:attributeDescription.nameForDisplay_cde];
+    }
 }
 
 - (void)controlTextDidChange:(NSNotification *)notification {
     if(![notification.object isEqual:self.searchField]) {
         return;
     }
-    if([[self.searchField stringValue] length] == 0 || [[self filterByKeyPath] length] == 0) {
+
+    NSString *searchStr = [self.searchField stringValue];
+    if([searchStr length] == 0) {
         self.filterPredicate = nil;
-        [self didChangeFilterPredicate];
-        return;
+    }
+    else if (self.filterByKeyPath == nil) {
+        // search 'all' fields
+        self.filterPredicate = [NSPredicate predicateWithBlock:^BOOL(NSManagedObject *obj, NSDictionary *bindings) {
+            // search all fields for searchStr
+            NSDictionary *values = [obj dictionaryWithValuesForKeys:[obj attributeKeys]];
+            for (NSString *key in values) {
+                NSString *value = values[key];
+                if ([value isKindOfClass:NSString.class] && [value localizedCaseInsensitiveContainsString:searchStr]) {
+                    return YES;
+                }
+            }
+            return NO;
+        }];
+    }
+    else {
+        id searchFieldValue = [[self class] transformedValueFromString:[self.searchField stringValue]
+                                                         attributeType:[[self filterByAttributeDescription] attributeType]];
+        NSPredicateOperatorType operatorType = [NSAttributeDescription predicateOperatorTypeForAttributeType_cde:[[self filterByAttributeDescription] attributeType]];
+        self.filterPredicate = [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForKeyPath:[NSString stringWithFormat:@"%@", [self filterByKeyPath]]] rightExpression:[NSExpression expressionForConstantValue:searchFieldValue] modifier:NSDirectPredicateModifier type:operatorType options:NSDiacriticInsensitivePredicateOption];
     }
 
-    id searchFieldValue = [[self class] transformedValueFromString:[self.searchField stringValue]
-                                             attributeType:[[self filterByAttributeDescription] attributeType]];
-    NSPredicateOperatorType operatorType = [NSAttributeDescription predicateOperatorTypeForAttributeType_cde:[[self filterByAttributeDescription] attributeType]];
-    self.filterPredicate = [NSComparisonPredicate predicateWithLeftExpression:[NSExpression expressionForKeyPath:[NSString stringWithFormat:@"%@", [self filterByKeyPath]]] rightExpression:[NSExpression expressionForConstantValue:searchFieldValue] modifier:NSDirectPredicateModifier type:operatorType options:NSDiacriticInsensitivePredicateOption];
     [self didChangeFilterPredicate];
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)item {
-    [item setState:[[[item representedObject] name] isEqualToString:[self filterByKeyPath]] ? NSOnState : NSOffState];
+    if (item.representedObject == nil && self.filterByAttributeDescription == nil) {
+        [item setState:NSOnState];
+    }
+    else {
+        [item setState:[[[item representedObject] name] isEqualToString:[self filterByKeyPath]] ? NSOnState : NSOffState];
+    }
     return YES;
 }
 

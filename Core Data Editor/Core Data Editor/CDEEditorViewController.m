@@ -29,6 +29,9 @@
 // 3rd Party: End
 
 
+static NSString *const PREF_MODIFIED = @"modified";
+static NSString *const PREF_FRAME = @"frame";
+
 @interface CDEEditorViewController () <CDEEntitiesViewControllerDelegate, CDEManagedObjectsViewControllerDelegate, CDERelationshipsViewControllerDelegate, CDEManagedObjectViewControllerDelegate>
 
 #pragma mark - Properties
@@ -43,6 +46,7 @@
 @property (nonatomic, strong) CDERelationshipsViewController *relationshipsViewController;
 @property (nonatomic, strong) CDEValidationErrorsViewController *validationErrorsViewController;
 @property (nonatomic, copy) NSURL *storeURL;
+@property (nonatomic, copy) NSURL *modelURL;
 @property (nonatomic, weak) id userDefaultsObserver;
 @property (nonatomic, strong, readwrite) CDEAutosaveInformation *autosaveInformation;
 
@@ -153,20 +157,21 @@
 
   self.managedObjectsViewController.autosaveInformation = self.autosaveInformation;
   self.storeURL = storeURL;
+  self.modelURL = modelURL;
   if(performReload) {
     self.managedObjectModel = [[[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL] transformedManagedObjectModel_cde];
     self.persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:self.managedObjectModel];
 
-    NSError *error = nil;
+    NSError *error2 = nil;
 
     NSPersistentStore *store = [self.persistentStoreCoordinator addPersistentStoreWithType:nil // guess
                                                                              configuration:nil
                                                                                        URL:storeURL
                                                                                    options:nil
-                                                                                 error_cde:&error];
+                                                                                 error_cde:&error2];
 
     if(store == nil) {
-      [NSApp presentError:error];
+      [NSApp presentError:error2];
       return NO;
     }
 
@@ -178,22 +183,52 @@
     self.managedObjectViewController.request = nil;
     self.relationshipsViewController.managedObject = nil;
     [self.entitiesViewController setManagedObjectContext:self.managedObjectContext];
-
   }
+
   return YES;
 }
 
 #pragma mark - Saving
 - (BOOL)save:(NSError **)error {
-  BOOL saved = [self.managedObjectContext save:error];
-  if(saved) {
-    [self.managedObjectsViewController updateUIOfVisibleObjects];
-    [self.detailManagedObjectsViewController updateUIOfVisibleObjects];
-  }
-  return saved;
+    BOOL saved = [self.managedObjectContext save:error];
+    if(saved) {
+        [self.managedObjectsViewController updateUIOfVisibleObjects];
+        [self.detailManagedObjectsViewController updateUIOfVisibleObjects];
+    }
+    return saved;
 }
-#pragma mark - State
-- (void)cleanup {
+
+#pragma mark - Cleanup
+
+- (void)cleanup:(NSView *)containerView {
+    NSString *prefKey = [self prefKey];
+    NSString *frameRect = NSStringFromRect(containerView.frame);
+    NSLog(@"saving: %@, %@", prefKey, frameRect);
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:[NSDate date] forKey:[NSString stringWithFormat:@"%@-%@", prefKey, PREF_MODIFIED]];
+    [defaults setObject:frameRect forKey:[NSString stringWithFormat:@"%@-%@", prefKey, PREF_FRAME]];
+}
+
+- (void)restoreView:(NSView *)containerView {
+    NSString *prefKey = [self prefKey];
+    NSLog(@"loading: %@", prefKey);
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *frameRectS = [defaults objectForKey:[NSString stringWithFormat:@"%@-%@", prefKey, PREF_FRAME]];
+    if ([frameRectS length] > 0) {
+        NSLog(@"> frame: %@", frameRectS);
+        //containerView.frame = NSRectFromString(frameRectS);
+        //self.view.frame = containerView.frame;
+    }
+
+    // TODO load previous splitview positions
+
+}
+
+- (NSString *)prefKey {
+    // create a small-ish key to use to save this project's preferences in
+    NSString *uuid = [self.modelURL.path stringByAppendingString:self.storeURL.path];
+    NSString *prefKey = [NSString stringWithFormat:@"proj%d", (int)[uuid hash]];
+    return prefKey;
 }
 
 #pragma mark - Query Control

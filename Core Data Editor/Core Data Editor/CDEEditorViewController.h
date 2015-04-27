@@ -10,8 +10,9 @@
 #pragma mark - Saving
 - (BOOL)save:(NSError **)error;
 
-#pragma mark - State
-- (void)cleanup;
+#pragma mark - Cleanup
+- (void)cleanup:(NSView *)containerView;
+- (void)restoreView:(NSView *)containerView;
 
 #pragma mark - Query Control
 - (IBAction)takeQueryFromSender:(id)sender;

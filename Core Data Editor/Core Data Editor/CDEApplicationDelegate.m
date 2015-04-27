@@ -142,6 +142,9 @@
     if(self.preferencesWindowController == nil) {
         self.preferencesWindowController = [CDEPreferencesWindowController new];
     }
+
+    // seems to be needed when running from IDE
+    [NSApp activateIgnoringOtherApps:YES];
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag

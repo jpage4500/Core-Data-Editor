@@ -414,7 +414,7 @@
 															<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 															<int key="NSTextFieldAlignmentRectInsetsVersion">1</int>
 														</object>
-														<object class="NSTextField" id="770084959">
+														<object class="NSTextField" id="939828385">
 															<reference key="NSNextResponder" ref="1070941391"/>
 															<int key="NSvFlags">266</int>
 															<string key="NSFrame">{{104, 3}, {411, 14}}</string>
@@ -423,14 +423,14 @@
 															<reference key="NSNextKeyView" ref="337993467"/>
 															<string key="NSAntiCompressionPriority">{250, 750}</string>
 															<bool key="NSEnabled">YES</bool>
-															<object class="NSTextFieldCell" key="NSCell" id="333524595">
+															<object class="NSTextFieldCell" key="NSCell" id="452127068">
 																<int key="NSCellFlags">67108928</int>
 																<int key="NSCellFlags2">272762880</int>
 																<string key="NSContents">Table View Cell</string>
 																<reference key="NSSupport" ref="26"/>
-																<reference key="NSControlView" ref="770084959"/>
+																<reference key="NSControlView" ref="939828385"/>
 																<reference key="NSBackgroundColor" ref="188307403"/>
-																<object class="NSColor" key="NSTextColor" id="343544905">
+																<object class="NSColor" key="NSTextColor" id="620789979">
 																	<int key="NSColorSpace">1</int>
 																	<bytes key="NSRGB">MC41MDM0NDE0MjM4IDAuNTAwNjI4OTAxOSAwLjUwNjI1Mzk0NTcAA</bytes>
 																</object>
@@ -438,24 +438,24 @@
 															<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 															<int key="NSTextFieldAlignmentRectInsetsVersion">1</int>
 														</object>
-														<object class="NSTextField" id="19835786">
+														<object class="NSTextField" id="576616958">
 															<reference key="NSNextResponder" ref="1070941391"/>
 															<int key="NSvFlags">268</int>
 															<string key="NSFrame">{{62, 3}, {40, 14}}</string>
 															<reference key="NSSuperview" ref="1070941391"/>
 															<reference key="NSWindow"/>
-															<reference key="NSNextKeyView" ref="770084959"/>
+															<reference key="NSNextKeyView" ref="939828385"/>
 															<string key="NSReuseIdentifierKey">_NS:1535</string>
 															<bool key="NSEnabled">YES</bool>
-															<object class="NSTextFieldCell" key="NSCell" id="745246133">
+															<object class="NSTextFieldCell" key="NSCell" id="791652490">
 																<int key="NSCellFlags">68157504</int>
 																<int key="NSCellFlags2">71435264</int>
 																<string key="NSContents">Tables:</string>
 																<reference key="NSSupport" ref="26"/>
 																<string key="NSCellIdentifier">_NS:1535</string>
-																<reference key="NSControlView" ref="19835786"/>
+																<reference key="NSControlView" ref="576616958"/>
 																<reference key="NSBackgroundColor" ref="188307403"/>
-																<reference key="NSTextColor" ref="343544905"/>
+																<reference key="NSTextColor" ref="620789979"/>
 															</object>
 															<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 															<int key="NSTextFieldAlignmentRectInsetsVersion">1</int>
@@ -509,7 +509,7 @@
 															<string key="NSFrame">{{524, 21}, {171, 28}}</string>
 															<reference key="NSSuperview" ref="1070941391"/>
 															<reference key="NSWindow"/>
-															<reference key="NSNextKeyView" ref="19835786"/>
+															<reference key="NSNextKeyView" ref="576616958"/>
 															<string key="NSReuseIdentifierKey">_NS:22</string>
 															<bool key="NSEnabled">YES</bool>
 															<object class="NSButtonCell" key="NSCell" id="1047538188">
@@ -899,6 +899,22 @@
 					<int key="connectionID">46</int>
 				</object>
 				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">tablesLabel</string>
+						<reference key="source" ref="1070941391"/>
+						<reference key="destination" ref="576616958"/>
+					</object>
+					<int key="connectionID">117</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">tablesValueLabel</string>
+						<reference key="source" ref="1070941391"/>
+						<reference key="destination" ref="939828385"/>
+					</object>
+					<int key="connectionID">118</int>
+				</object>
+				<object class="IBConnectionRecord">
 					<object class="IBBindingConnection" key="connection">
 						<string key="label">value: objectValue.storeName</string>
 						<reference key="source" ref="830796656"/>
@@ -965,10 +981,10 @@
 				<object class="IBConnectionRecord">
 					<object class="IBBindingConnection" key="connection">
 						<string key="label">value: objectValue.tableNames</string>
-						<reference key="source" ref="770084959"/>
+						<reference key="source" ref="939828385"/>
 						<reference key="destination" ref="1070941391"/>
 						<object class="NSNibBindingConnector" key="connector">
-							<reference key="NSSource" ref="770084959"/>
+							<reference key="NSSource" ref="939828385"/>
 							<reference key="NSDestination" ref="1070941391"/>
 							<string key="NSLabel">value: objectValue.tableNames</string>
 							<string key="NSBinding">value</string>
@@ -1081,8 +1097,8 @@
 							<reference ref="999644871"/>
 							<reference ref="415675317"/>
 							<reference ref="490879409"/>
-							<reference ref="770084959"/>
-							<reference ref="19835786"/>
+							<reference ref="939828385"/>
+							<reference ref="576616958"/>
 						</array>
 						<reference key="parent" ref="415691353"/>
 					</object>
@@ -1256,29 +1272,29 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">103</int>
-						<reference key="object" ref="770084959"/>
+						<reference key="object" ref="939828385"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="333524595"/>
+							<reference ref="452127068"/>
 						</array>
 						<reference key="parent" ref="1070941391"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">104</int>
-						<reference key="object" ref="19835786"/>
+						<reference key="object" ref="576616958"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="745246133"/>
+							<reference ref="791652490"/>
 						</array>
 						<reference key="parent" ref="1070941391"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">105</int>
-						<reference key="object" ref="745246133"/>
-						<reference key="parent" ref="19835786"/>
+						<reference key="object" ref="791652490"/>
+						<reference key="parent" ref="576616958"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">106</int>
-						<reference key="object" ref="333524595"/>
-						<reference key="parent" ref="770084959"/>
+						<reference key="object" ref="452127068"/>
+						<reference key="parent" ref="939828385"/>
 					</object>
 				</array>
 			</object>
@@ -1342,7 +1358,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">116</int>
+			<int key="maxID">118</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -1361,6 +1377,8 @@
 						<string key="modelValueLabel">NSTextField</string>
 						<string key="storeLabel">NSTextField</string>
 						<string key="storeValueLabel">NSTextField</string>
+						<string key="tablesLabel">NSTextField</string>
+						<string key="tablesValueLabel">NSTextField</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
 						<object class="IBToOneOutletInfo" key="modelLabel">
@@ -1377,6 +1395,14 @@
 						</object>
 						<object class="IBToOneOutletInfo" key="storeValueLabel">
 							<string key="name">storeValueLabel</string>
+							<string key="candidateClassName">NSTextField</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="tablesLabel">
+							<string key="name">tablesLabel</string>
+							<string key="candidateClassName">NSTextField</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="tablesValueLabel">
+							<string key="name">tablesValueLabel</string>
 							<string key="candidateClassName">NSTextField</string>
 						</object>
 					</dictionary>
